@@ -4,7 +4,7 @@ import Apiresponse from "../utils/apiresponse.js";
 import asyncHandler from "../utils/asynchandler.js";
 
 const getallproducts = asyncHandler(async(req,res)=>{
-    const products = await Product.find().populate(" seller ","name email");
+    const products = await Product.find().populate("seller","username email");
     res.status(200)
     .json(new Apiresponse(200,products,"Products fetched"))
 })
@@ -33,7 +33,7 @@ const getproductbyId = asyncHandler(async(req,res)=>{
 
         const { id } = req.params;
 
-        const product = await Product.findById(id)
+        const product = await Product.findById(id).populate("seller","username email");
 
         if(!product){
             throw new Apierror(400,"Invalid Id")
@@ -88,4 +88,52 @@ const deleteProduct = asyncHandler(async(req,res)=>{
     return res.status(200).json(new Apiresponse(200,{},"Product deleted successfully"))
 })
 
-export {deleteProduct,getallproducts,getproductbyId,addproduct,updateproduct}
+const searchAndFilter = asyncHandler(async (req, res) => {
+  const { keyword, category, minprice, maxprice ,limit , page ,sort } = req.query;
+  let query = {};
+
+
+  if (keyword) {
+    query.name = { $regex: keyword, $options: "i" };
+  }
+
+  if (category) {
+    query.category = { $regex: category, $options: "i" };
+  }
+
+  if (minprice && maxprice) {
+    query.price = { $gte: Number(minprice), $lte: Number(maxprice) };
+  }
+
+  const limitNum = Number(limit) || 10;
+  const pagenum = Number(page) || 1 ;
+  const skip = (pagenum-1)*limitNum
+
+  let sortops = {}
+
+  if(sort=="price_asc"){
+    sortops.price = 1;
+  }
+  else if(sort==="price_des"){
+    sortops.price = -1;
+  }
+  else{
+    sort.createdAt = -1;
+  }
+
+  const [products , total ] = await Promise.all(
+    [Product.find(query).skip(skip).limit(limitNum).sort(sortops),
+    Product.countDocuments(query)])
+
+  return res.status(200).json(
+    new Apiresponse(200, {
+    products,
+    totalProducts: total,
+    totalPages: Math.ceil(total / limitNum),
+    currentPage: pagenum
+    }, "Products Fetched by Search & Filter")
+  );
+});
+
+
+export {deleteProduct,getallproducts,getproductbyId,addproduct,updateproduct,searchAndFilter}

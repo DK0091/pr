@@ -9,13 +9,15 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.20.0",
     "mongoose": "^8.18.3",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.6",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
-    "speakeasy": "^2.0.0"
+    "speakeasy": "^2.0.0",
+    "winston": "^3.18.3"
   },
   "name": "pr",
   "version": "1.0.0",

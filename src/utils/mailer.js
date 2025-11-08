@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer"
 
+
 export const sendmail = async({to,subject,text,html})=>{
     const transporter = nodemailer.createTransport({
         host : "smtp.gmail.com",
@@ -12,10 +13,11 @@ export const sendmail = async({to,subject,text,html})=>{
     });
 
     await transporter.sendMail({
-        from:`"Darshan" <${process.env.MY_GMAIL}>`,
+        from:`"E-COMMERCE" <${process.env.MY_GMAIL}>`,
         to,
         subject,
         text,
         html
     });
 }
+

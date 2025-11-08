@@ -4,6 +4,10 @@ import asyncHandler from "../utils/asynchandler.js";
 import Apierror from "../utils/apierror.js";
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/Product.model.js";
+import { sendmail } from "../utils/mailer.js";
+import {User} from "../models/user.model.js"
+
+
 
 const addtocart = asyncHandler(async(req,res)=>{
     const productId = req.params.id;
@@ -121,7 +125,18 @@ const placeorder = asyncHandler(async(req,res)=>{
     }
 
     cart.items=[];
-    cart.save();
+    await cart.save();
+
+    const user = await User.findById(userId)
+
+    const useremail = user.email
+
+    await sendmail({to:useremail,
+        subject:"Order Confirmation",
+        text: `Your order with ID ${order._id} has been placed successfully! Total: ₹${order.totalAmount}`, 
+        html: `<h1>Order Confirmation</h1>
+               <p>Your order with ID <b>${order._id}</b> has been placed successfully!</p>
+               <p>Total: <b>₹${order.totalAmount}</b></p>`})
 
     return res
     .status(200)

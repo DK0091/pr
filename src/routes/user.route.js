@@ -32,7 +32,7 @@ router.route('/notifications').get(jwtverify,getnotifications)
 
 router.route('/notifications/:id').put(jwtverify,notificationread)
 
-router.route('/deletenotifications').delete(jwtverify,deletenotification)
+router.route('/deletenotifications/:id').delete(jwtverify,deletenotification)
 
 router.route('/forgotpassword').post(forgotpassword)
 

@@ -23,20 +23,15 @@ const registeruser = asyncHandler(async(req , res)=>{
        throw new Apierror(400,"User exists")
     }
 
-       if(!req.file){
-        throw new Apierror(401,"File not uploaded")
-    }
-
-    if(!req.file.path){
-        throw new Apierror(401,"url not found")
-    }
+    // Avatar is optional - use default if not provided
+    const avatarUrl = req.file?.path || 'https://via.placeholder.com/150';
 
     const createuser = await User.create({
         username,
         email,
         password,
         role,
-        avatar : req.file.path
+        avatar : avatarUrl
     })
 
 
@@ -71,18 +66,23 @@ const login = asyncHandler(async(req,res)=>{
 
     await user.save({validateBeforeSave:false});
 
-    const loggedin = await User.findOne({email}).select("-password -refreshtoken")
+    const loggedin = await User.findById(user._id).select("-password -refreshtoken")
 
     const options ={
         httpOnly:true,
-        secure:true
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
     }
 
+   
+
     if(!user.enable2FA){
-        return res.status(200)
+        const response = res.status(200)
         .cookie("refreshtoken",refreshtoken,options)
-        .cookie("accesstoken",accesstoken,options)
-        .json(new Apiresponse(200,{loggedin,accesstoken},"user logged in"))
+        .cookie("accesstoken",accesstoken,options);
+        
+        return response.json(new Apiresponse(200,{loggedin,accesstoken},"user logged in"))
     }
 
     return res.status(200).json(new Apiresponse(200,{userId: user._id },"2FA required"))
@@ -115,7 +115,8 @@ const checktoken = asyncHandler(async(req,res)=>{
 
     const options = {
         httpOnly:true,
-        secure:true
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
     }
 
     return res.status(200)
@@ -163,7 +164,8 @@ const logout = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
   };
 
   return res
@@ -412,7 +414,8 @@ const verify2FA = asyncHandler(async(req,res)=>{
 
     const options ={
         httpOnly:true,
-        secure:true
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
     }
 
     return res.status(200)
